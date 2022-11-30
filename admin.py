@@ -2,11 +2,11 @@ import telebot
 from telebot import custom_filters
 from telebot import types 
 
-TOKEN = '5795242325:AAG3Ua6fD-ffCIQoP8_7Bg9IPDRmNithCvY'
+TOKEN = 'token'
 
 bot = telebot.TeleBot(TOKEN)
 
-admin_id = [520973029]
+admin_id = [1234]
 btn_list = ['Title', 'Author', 'Artist', 'Genre', 'Periodicity', 'Magazine', 'Chapters', 'Status', 'Colorization', 'Kind', 'Adaptation', 'Translation', 'Stop']
 answer_dict = {}
 
@@ -89,9 +89,7 @@ def kind_quation(message):
 def return_to_main(message, key):
 	store_answer(message, key)
 	markup = create_keyboards(btn_list)
-	bot.reply_to(message, "Continue...", reply_markup=markup)
-	bot.register_next_step_handler(message, bot_asks)
-
+	bot.reply_to(message, "Insert comics.", reply_markup=markup)
 
 @bot.message_handler(chat_id=admin_id)
 def incorrect_message(message):
@@ -162,6 +160,4 @@ def bot_asks(message):
 
 bot.add_custom_filter(custom_filters.ChatFilter())
 bot.infinity_polling()
-
-
 

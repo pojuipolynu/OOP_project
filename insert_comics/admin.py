@@ -132,5 +132,48 @@ def bot_asks(message):
 
 
 
+
+#delete part
+
+@bot.message_handler(chat_id=admin_id, commands=['delete'])
+def delete_command(message):
+    bot.reply_to(message, "Enter name of comics to delete it")
+    bot.register_next_step_handler(message, in_database)
+
+
+def delete_comics(message, value):
+    key = [value]
+    bot.reply_to(message, 'Comics was deleted')
+    comics_db.delete_comic(key)
+
+@bot.message_handler(chat_id=admin_id)
+def in_database(message):
+    key = message.text.lower()
+    if comics_db.search_comics([key]):
+        bot.reply_to(message, 'Do you want to delete this comic? (yes or no)')
+        bot.register_next_step_handler(message, delete_or_not, key)
+    elif message.text == '/delete':
+        delete_command(message)
+    else:
+        bot.reply_to(message, "Sorry, I don't find your comic.\n\nIf you want to try againt enter /delete.")
+    
+@bot.message_handler(chat_id=admin_id)
+def delete_or_not(message, key):
+    value = message.text.lower()
+    if value == 'yes':
+        delete_comics(message, key)
+    elif value == '/delete':
+        delete_command(message)
+    elif value == 'no':
+        bot.reply_to(message, "If you want to try againt enter /delete.")
+    else:
+        bot.reply_to(message, "I don't recognize your command.\n\nIf you want to try againt enter /delete.")
+
+#delete part end
+
+
+
+
+
 bot.add_custom_filter(custom_filters.ChatFilter())
 bot.infinity_polling()

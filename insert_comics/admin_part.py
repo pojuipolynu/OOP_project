@@ -3,13 +3,13 @@ import telebot
 from telebot import custom_filters
 from telebot import types
 
-comics_db = Comic("localhost", "root", "vfhsyf10", "comics1")
+comics_db = Comic("localhost", "root", "...", "comics1")
 
-TOKEN = '5795242325:AAG3Ua6fD-ffCIQoP8_7Bg9IPDRmNithCvY'
+TOKEN = '...'
 
 bot = telebot.TeleBot(TOKEN)
 
-admin_id = [520973029]
+admin_id = [....]
 btn_list = ['title', 'author', 'artist', 'genre', 'periodicity', 'magazine',
             'chapters', 'status', 'colorization', 'kind', 'adaptation', 'translation', 'end']
 periodicity_list = ['every day', 'every week', 'every month', 'non-periodical']

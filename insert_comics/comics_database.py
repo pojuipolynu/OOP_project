@@ -241,3 +241,23 @@ class Comic:
         mycursor.execute(sql, name)
         myresult = mycursor.fetchall()
         return myresult
+    
+    #delete part starts
+        def search_comics(self, search):
+        mycursor = self.mydb.cursor()
+        sql = "SELECT idcomics FROM comics WHERE name = %s;"
+        mycursor.execute(sql, search)
+        myresult = mycursor.fetchall()
+        return myresult
+
+    def delete_comic(self, name):
+        mycursor = self.mydb.cursor()
+        sql = "DELETE FROM comics WHERE idcomics = %s;"
+        val = self.search_comics(name)
+        vall = list()
+        vall += ([x[0] for x in val])
+        mycursor.execute(sql, vall)
+        self.mydb.commit()
+        
+    #delete part ends
+

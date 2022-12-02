@@ -3,13 +3,13 @@ import telebot
 from telebot import custom_filters
 from telebot import types
 
-comics_db = Comic("localhost", "root", "password", "database") #add inform
+comics_db = Comic("localhost", "root", "password", "database")
 
-TOKEN = 'token' #add
+TOKEN = 'token'
 
 bot = telebot.TeleBot(TOKEN)
 
-admin_id = [123] #add
+admin_id = [123456]
 btn_list = ['title', 'author', 'artist', 'genre', 'periodicity', 'magazine',
             'chapters', 'status', 'colorization', 'kind', 'adaptation', 'translation', 'end']
 periodicity_list = ['every day', 'every week', 'every month', 'non-periodical']
@@ -47,7 +47,7 @@ def not_admin_start(message):
 @bot.message_handler(chat_id=admin_id, commands=['help'])
 def help_command(message):
     bot.send_message(
-        message.chat.id, "/insert - add new comics\n/delete - delete comics\n/update - update comics")
+        message.chat.id, "/insert - add new comics\n/delete - delete comics\n/update - update comics\n/print - print information about comics")
 
 
 @bot.message_handler(chat_id=admin_id, commands=['insert'])
@@ -56,6 +56,100 @@ def insert_command(message):
     markup = create_keyboards(btn_list)
     bot.reply_to(message, "Insert comics.", reply_markup=markup)
     bot.register_next_step_handler(message, bot_asks)
+
+
+@bot.message_handler(chat_id=admin_id, commands=['print'])
+def print_command(message):
+    bot.reply_to(message, "Enter title of comics to print it")
+    bot.register_next_step_handler(message, print_in_database)
+            
+            
+
+#delete part
+
+@bot.message_handler(chat_id=admin_id, commands=['delete'])
+def delete_command(message):
+    bot.reply_to(message, "Enter title of comic to delete it")
+    bot.register_next_step_handler(message, in_database)
+
+
+def delete_comics(message, value):
+    key = [value]
+    bot.reply_to(message, 'Comics was deleted')
+    comics_db.delete_comic(key)
+
+@bot.message_handler(chat_id=admin_id)
+def in_database(message):
+    key = message.text.lower()
+    if comics_db.search_comics([key]):
+        bot.reply_to(message, 'Do you want to delete this comic? (yes or no)')
+        bot.register_next_step_handler(message, delete_or_not, key)
+    elif message.text == '/delete':
+        delete_command(message)
+    else:
+        bot.reply_to(message, "Sorry, I don't find your comic.\n\nIf you want to try againt enter /delete.")
+    
+@bot.message_handler(chat_id=admin_id)
+def delete_or_not(message, key):
+    value = message.text.lower()
+    if value == 'yes':
+        delete_comics(message, key)
+    elif value == '/delete':
+        delete_command(message)
+    elif value == 'no':
+        bot.reply_to(message, "If you want to try againt enter /delete.")
+    else:
+        bot.reply_to(message, "I don't recognize your command.\n\nIf you want to try againt enter /delete.")
+
+#delete part end
+
+
+
+
+
+
+
+#print part starts
+
+def print_info(mylist):
+    title = f'Title: {mylist[0]}\n'
+    chapters = f'Chapters: {mylist[1]}\n'
+    author = f'Author: {mylist[2]} {mylist[3]}\n'
+    artist = f'Artist: {mylist[4]} {mylist[5]}\n'
+    kind = f'Kind: {mylist[6]}\n'
+    genre = f'Genre: {mylist[8]}, {mylist[7]}\n'
+    periodicity = f'Periodicity: {mylist[9]}\n'
+    magazine = f'Magazine: {mylist[10]}\n'
+    status = f'Status: {mylist[11]}\n'
+    colorization = f'Colorization: {mylist[12]}\n'
+    adaptation = f'Adaptation: {mylist[13]}\n'
+    translation = f'Translation: {mylist[14]} ({mylist[15]})\n'
+    return f'{title}{chapters}{author}{artist}{kind}{genre}{periodicity}{magazine}{status}{colorization}{adaptation}{translation}'
+
+def print_comic(message):
+    key = [message.text]
+    row = comics_db.print_comics(key)
+    bot.reply_to(message, print_info(row[0]))
+
+@bot.message_handler(chat_id=admin_id)
+def print_in_database(message):
+    key = message.text.lower()
+    if comics_db.search_comics([key]):
+        print_comic(message)
+    elif message.text == '/print':
+        print_command(message)
+    else:
+        bot.reply_to(message, "Sorry, I don't find your comic.\n\nYou can /insert it or try /print again")
+
+#print part ends
+
+
+
+
+
+
+
+
 
 
 def return_to_main(message, key):
@@ -129,49 +223,6 @@ def bot_asks(message):
         end(message)
     else:
         incorrect_message(message)
-
-
-
-
-#delete part
-
-@bot.message_handler(chat_id=admin_id, commands=['delete'])
-def delete_command(message):
-    bot.reply_to(message, "Enter name of comics to delete it")
-    bot.register_next_step_handler(message, in_database)
-
-
-def delete_comics(message, value):
-    key = [value]
-    bot.reply_to(message, 'Comics was deleted')
-    comics_db.delete_comic(key)
-
-@bot.message_handler(chat_id=admin_id)
-def in_database(message):
-    key = message.text.lower()
-    if comics_db.search_comics([key]):
-        bot.reply_to(message, 'Do you want to delete this comic? (yes or no)')
-        bot.register_next_step_handler(message, delete_or_not, key)
-    elif message.text == '/delete':
-        delete_command(message)
-    else:
-        bot.reply_to(message, "Sorry, I don't find your comic.\n\nIf you want to try againt enter /delete.")
-    
-@bot.message_handler(chat_id=admin_id)
-def delete_or_not(message, key):
-    value = message.text.lower()
-    if value == 'yes':
-        delete_comics(message, key)
-    elif value == '/delete':
-        delete_command(message)
-    elif value == 'no':
-        bot.reply_to(message, "If you want to try againt enter /delete.")
-    else:
-        bot.reply_to(message, "I don't recognize your command.\n\nIf you want to try againt enter /delete.")
-
-#delete part end
-
-
 
 
 

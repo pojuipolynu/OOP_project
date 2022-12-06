@@ -80,7 +80,7 @@ class Comic:
         mycursor = self.mydb.cursor()
         sql = "INSERT INTO translation (language, legality, status_idstatus) VALUES (%s, %s, %s)"
         val = list()
-        val.append(title)
+        val.append(title[0])
         val.append(title1)
         val += ([x[0] for x in id])
         mycursor.execute(sql, val)
@@ -106,117 +106,40 @@ class Comic:
 
     def select_period(self, key, keyl):
         mycursor = self.mydb.cursor()
-        if key not in ['every day', 'every week', 'every month', 'non-periodical']:
-            return False
-        else:
-            sql = "SELECT idperiodicity FROM periodicity WHERE period = %s;"
-            mycursor.execute(sql, keyl)
-            l = mycursor.fetchall()
-            return l
+        sql = "SELECT idperiodicity FROM periodicity WHERE period = %s;"
+        mycursor.execute(sql, keyl)
+        l = mycursor.fetchall()
+        return l
 
     def select_status(self, key, keyl):
         mycursor = self.mydb.cursor()
-        if key not in ['frozen', 'ongoing', 'completed']:
-            return False
-        else:
-            sql = "SELECT idstatus FROM status WHERE name = %s;"
-            mycursor.execute(sql, keyl)
-            l = mycursor.fetchall()
-            return l
+        sql = "SELECT idstatus FROM status WHERE name = %s;"
+        mycursor.execute(sql, keyl)
+        l = mycursor.fetchall()
+        return l
 
     def select_color(self, key, keyl):
         mycursor = self.mydb.cursor()
-        if key not in ['monochrome', 'non-monochrome', 'lineart']:
-            return False
-        else:
-            sql = "SELECT idcolourization FROM colourization WHERE name = %s;"
-            mycursor.execute(sql, keyl)
-            l = mycursor.fetchall()
-            return l
+        sql = "SELECT idcolourization FROM colourization WHERE name = %s;"
+        mycursor.execute(sql, keyl)
+        l = mycursor.fetchall()
+        return l
 
     def select_kind(self, key, keyl):
         mycursor = self.mydb.cursor()
-        if key not in ['manga', 'manhwa', 'manhua', 'comics', 'maliopys']:
-            return False
-        else:
-            sql = "SELECT idkind FROM kind WHERE name = %s;"
-            mycursor.execute(sql, keyl)
-            l = mycursor.fetchall()
-            return l
+        sql = "SELECT idkind FROM kind WHERE name = %s;"
+        mycursor.execute(sql, keyl)
+        l = mycursor.fetchall()
+        return l
 
     def select_adapt(self, key, keyl):
         mycursor = self.mydb.cursor()
-        if key not in ['film', 'cartoon', 'tvshow', 'show', 'anime']:
-            return False
-        else:
-            sql = "SELECT idadaptation FROM adaptation WHERE type = %s;"
-            mycursor.execute(sql, keyl)
-            l = mycursor.fetchall()
-            return l
-
-    def insert_comics(self, key, choice, l):
-        keyl = list()
-        keyl.append(key)
-        if choice == 'title':
-            l['name'] = self.select_name(key)
-        elif choice == 'genre':
-            if self.search_genre(keyl):
-                l[choice] = ([x[0] for x in (self.search_genre(keyl))])
-            else:
-                self.insert_genre(keyl)
-                l[choice] = ([x[0] for x in (self.search_genre(keyl))])
-        elif choice == 'author':
-            if self.search_author(keyl):
-                l[choice] = ([x[0] for x in (self.search_author(keyl))])
-            else:
-                self.insert_author(input('It seems that your author is not in our database.'
-                                         'Please help us by entering his name!\n'), keyl)
-                l[choice] = ([x[0] for x in (self.search_author(keyl))])
-        elif choice == 'artist':
-            if self.search_artist(keyl):
-                l[choice] = ([x[0] for x in (self.search_artist(keyl))])
-            else:
-                self.insert_artist(input('It seems that your artist is not in our database.'
-                                         'Please help us by entering his name!\n'), keyl)
-                l[choice] = ([x[0] for x in (self.search_artist(keyl))])
-        elif choice == 'periodicity':
-            l[choice] = ([x[0] for x in (self.select_period(key, keyl))])
-        elif choice == 'magazine':
-            if self.search_magazine(keyl):
-                l[choice] = ([x[0] for x in (self.search_magazine(keyl))])
-            else:
-                o = input('It seems that your magazine is not in our database. Please help us by entering its '
-                          'circulation!\n')
-                e = input('Thank you! Also enter, please, its periodicity!\n')
-                se = list()
-                se.append(e)
-                self.insert_magazine(keyl, o, self.select_period(e, se))
-                l[choice] = ([x[0] for x in (self.search_magazine(keyl))])
-        elif choice == 'chapters':
-            l[choice] = self.select_num(int(key))
-        elif choice == 'status':
-            l[choice] = ([x[0] for x in (self.select_status(key, keyl))])
-        elif choice == 'colorization':
-            l[choice] = ([x[0] for x in (self.select_color(key, keyl))])
-        elif choice == 'kind':
-            l[choice] = ([x[0] for x in (self.select_kind(key, keyl))])
-        elif choice == 'adaptation':
-            l[choice] = ([x[0] for x in (self.select_adapt(key, keyl))])
-        elif choice == 'translation':
-            #leg = input('Is your translation official or non-official?\n')
-            if self.search_translation(keyl, 'official'):
-                l[choice] = ([x[0] for x in (self.search_translation(keyl, 'official'))])
-            else:
-                e = input('Also enter, please, what`s your translation status!\n')
-                se = list()
-                se.append(e)
-                self.insert_translation(key, 'official', self.select_status(e, se))
-                l[choice] = ([x[0] for x in (self.search_translation(keyl, 'official'))])
-        else:
-            raise TypeError
+        sql = "SELECT idadaptation FROM adaptation WHERE type = %s;"
+        mycursor.execute(sql, keyl)
+        l = mycursor.fetchall()
         return l
 
-    
+
 
     def insert_all(self, l):
         comiclist1 = []
@@ -235,15 +158,10 @@ class Comic:
         mycursor.execute(sql, comiclist1)
         self.mydb.commit()
 
-    def print_comics(self, name):
-        mycursor = self.mydb.cursor()
-        sql = "SELECT * FROM comics WHERE name = %s;"
-        mycursor.execute(sql, name)
-        myresult = mycursor.fetchall()
-        return myresult
-    
-    #delete part starts
-        def search_comics(self, search):
+
+    #delete part
+
+    def search_comics(self, search):
         mycursor = self.mydb.cursor()
         sql = "SELECT idcomics FROM comics WHERE name = %s;"
         mycursor.execute(sql, search)
@@ -258,10 +176,8 @@ class Comic:
         vall += ([x[0] for x in val])
         mycursor.execute(sql, vall)
         self.mydb.commit()
-        
+
     #delete part ends
-    
-    #print part starts
 
     def print_comics(self, name):
         mycursor = self.mydb.cursor()
@@ -300,5 +216,133 @@ class Comic:
         mycursor.execute(sql, vall)
         myresult = mycursor.fetchall()
         return myresult
-    
-    #print part ends
+
+
+
+    def delete_comic(self, name):
+        mycursor = self.mydb.cursor()
+        sql = "DELETE FROM comics WHERE idcomics = %s;"
+        val = self.search_comics(name)
+        vall = list()
+        vall += ([x[0] for x in val])
+        mycursor.execute(sql, vall)
+        self.mydb.commit()
+
+    def update_genre(self, key, key1):
+        mycursor = self.mydb.cursor()
+        sql = "UPDATE comics SET genre_idgenre = %s WHERE idcomics = %s;"
+        val = self.search_genre(key)
+        vall = list()
+        vall += ([x[0] for x in val])
+        vall += ([x[0] for x in key1])
+        mycursor.execute(sql, vall)
+        self.mydb.commit()
+
+    def update_author(self, key, key1):
+        mycursor = self.mydb.cursor()
+        sql = "UPDATE comics SET author_idauthor = %s WHERE idcomics = %s;"
+        val = self.search_author(key)
+        vall = list()
+        vall += ([x[0] for x in val])
+        vall += ([x[0] for x in key1])
+        mycursor.execute(sql, vall)
+        self.mydb.commit()
+
+    def update_artist(self, key, key1):
+        mycursor = self.mydb.cursor()
+        sql = "UPDATE comics SET artist_idartist = %s WHERE idcomics = %s;"
+        val = self.search_artist(key)
+        vall = list()
+        vall += ([x[0] for x in val])
+        vall += ([x[0] for x in key1])
+        mycursor.execute(sql, vall)
+        self.mydb.commit()
+
+    def update_period(self, key, key1, key2):
+        mycursor = self.mydb.cursor()
+        sql = "UPDATE comics SET periodicity_idperiodicity = %s WHERE idcomics = %s;"
+        val = self.select_period(key, key1)
+        vall = list()
+        vall += ([x[0] for x in val])
+        vall += ([x[0] for x in key2])
+        mycursor.execute(sql, vall)
+        self.mydb.commit()
+
+    def update_magazine(self, key, key1):
+        mycursor = self.mydb.cursor()
+        sql = "UPDATE comics SET magazine_idmagazine = %s WHERE idcomics = %s;"
+        val = self.search_magazine(key)
+        vall = list()
+        vall += ([x[0] for x in val])
+        vall += ([x[0] for x in key1])
+        mycursor.execute(sql, vall)
+        self.mydb.commit()
+
+    def update_status(self, key, key1, key2):
+        mycursor = self.mydb.cursor()
+        sql = "UPDATE comics SET status_idstatus = %s WHERE idcomics = %s;"
+        val = self.select_status(key, key1)
+        vall = list()
+        vall += ([x[0] for x in val])
+        vall += ([x[0] for x in key2])
+        mycursor.execute(sql, vall)
+        self.mydb.commit()
+
+    def update_color(self, key, key1, key2):
+        mycursor = self.mydb.cursor()
+        sql = "UPDATE comics SET colourization_idcolourization = %s WHERE idcomics = %s;"
+        val = self.select_color(key, key1)
+        vall = list()
+        vall += ([x[0] for x in val])
+        vall += ([x[0] for x in key2])
+        mycursor.execute(sql, vall)
+        self.mydb.commit()
+
+    def update_kind(self, key, key1, key2):
+        mycursor = self.mydb.cursor()
+        sql = "UPDATE comics SET kind_idkind = %s WHERE idcomics = %s;"
+        val = self.select_kind(key, key1)
+        vall = list()
+        vall += ([x[0] for x in val])
+        vall += ([x[0] for x in key2])
+        mycursor.execute(sql, vall)
+        self.mydb.commit()
+
+    def update_adapt(self, key, key1, key2):
+        mycursor = self.mydb.cursor()
+        sql = "UPDATE comics SET adaptation_idadaptation = %s WHERE idcomics = %s;"
+        val = self.select_adapt(key, key1)
+        vall = list()
+        vall += ([x[0] for x in val])
+        vall += ([x[0] for x in key2])
+        mycursor.execute(sql, vall)
+        self.mydb.commit()
+
+    def update_trans(self, key, key1, leg):
+        mycursor = self.mydb.cursor()
+        sql = "UPDATE comics SET translation_idtranslation = %s WHERE idcomics = %s;"
+        val = self.search_translation(key, leg)
+        vall = list()
+        vall += ([x[0] for x in val])
+        vall += ([x[0] for x in key1])
+        mycursor.execute(sql, vall)
+        self.mydb.commit()
+
+    def update_name(self, key, key1):
+        mycursor = self.mydb.cursor()
+        sql = "UPDATE comics SET name = %s WHERE idcomics = %s;"
+        vall = list()
+        vall.append(key)
+        vall += ([x[0] for x in key1])
+        mycursor.execute(sql, vall)
+        self.mydb.commit()
+
+    def update_num(self, key, key1):
+        mycursor = self.mydb.cursor()
+        sql = "UPDATE comics SET num_chapter = %s WHERE idcomics = %s;"
+        vall = list()
+        vall.append(key)
+        vall += ([x[0] for x in key1])
+        mycursor.execute(sql, vall)
+        self.mydb.commit()
+

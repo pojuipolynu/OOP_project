@@ -3,13 +3,13 @@ import telebot
 from telebot import custom_filters
 from telebot import types
 
-comics_db = Comic("localhost", "root", "...", "...")
+comics_db = Comic("localhost", "root", "vfhsyf10", "comics1")
 
-TOKEN = 'token'
+TOKEN = '5795242325:AAG3Ua6fD-ffCIQoP8_7Bg9IPDRmNithCvY'
 
 bot = telebot.TeleBot(TOKEN)
 
-admin_id = [1234]
+admin_id = [520973029]
 btn_list = ['title', 'author', 'artist', 'genre', 'periodicity', 'magazine',
             'chapters', 'status', 'colorization', 'kind', 'adaptation', 'translation', 'end']
 periodicity_list = ['every day', 'every week', 'every month', 'non-periodical']
@@ -94,7 +94,6 @@ def delete_command(message):
     bot.reply_to(message, "Enter title of comic to delete it")
     bot.register_next_step_handler(message, in_database)
 
-
 def delete_comics(message, value):
     key = [value]
     bot.reply_to(message, 'Comics was deleted')
@@ -124,12 +123,6 @@ def delete_or_not(message, key):
         bot.reply_to(message, "I don't recognize your command.\n\nIf you want to try againt enter /delete.")
 
 #delete part end
-
-
-
-
-
-
 
 #print part starts
 
@@ -167,13 +160,6 @@ def print_in_database(message):
 
 #insert part starts
 
-def return_to_main(message, key, button_list, command, key1):
-    if message.text.lower() not in button_list: #don't work
-        quation_choose(message, button_list, "You can't choose this answer. Try again!", key)
-    insert_comics(message, key, command, key1)
-    markup = create_keyboards(btn_list)
-    bot.reply_to(message, 'Choose what you want to add', reply_markup=markup)
-
 '''
 def store_answer(message, key):
     insert_comics(message, key, answer_dict)
@@ -185,17 +171,6 @@ def incorrect_message(message):
     bot.register_next_step_handler(message, )
 
 '''
-
-
-
-@bot.message_handler(chat_id=admin_id)
-def end(message, command):
-    if command == 1:
-        comics_db.insert_all(answer_dict)
-        bot.reply_to(message, "The end of inserting")
-    else:
-        bot.reply_to(message, "The end of updating")
-
 
 @bot.message_handler(chat_id=admin_id)
 def quation(message, quation, key, commmand, key1):
@@ -209,6 +184,26 @@ def quation_choose(message, button_list, quation, key, commmand, key1):
     message = bot.reply_to(message, quation, reply_markup=markup)
     bot.register_next_step_handler(message, return_to_main, key, button_list, commmand, key1)
 
+def return_to_main(message, key, button_list, command, key1):
+    if message.text.lower() not in button_list: #don't work
+        quation_choose(message, button_list, "You can't choose this answer. Try again!", key)
+    insert_comics(message, key, command, key1)
+    markup = create_keyboards(btn_list)
+    bot.reply_to(message, 'Choose what you want to add', reply_markup=markup)
+
+@bot.message_handler(chat_id=admin_id)
+def next_choose(message, command, key1):
+    bot.reply_to(message, "Chose what you want to add.")
+    bot.register_next_step_handler(message, bot_asks, command, key1)
+
+@bot.message_handler(chat_id=admin_id)
+def end(message, command):
+    if command == 1:
+        comics_db.insert_all(answer_dict)
+        bot.reply_to(message, "The end of inserting")
+    else:
+        bot.reply_to(message, "The end of updating")
+
 '''
 def not_digits(message,key):
     if key == 'chapters':
@@ -220,7 +215,7 @@ def not_digits(message,key):
 '''
 
 
-
+@bot.message_handler(chat_id=admin_id)
 def bot_asks(message, command, key1=None):
     value = message.text
     if value == 'title':
@@ -259,101 +254,8 @@ def bot_asks(message, command, key1=None):
         print_command(message)
     elif value == 'end':
         end(message, command)
-
-@bot.message_handler(chat_id=admin_id)
-def magazine_extra(message, keyl, choice, command, key1=None):
-    bot.reply_to(message, "It seems that your magazine is not in our database. Please help us by entering its circulation!\n")
-    bot.register_next_step_handler(message, magazine_periodicity, keyl, choice, command, key1)
-
-@bot.message_handler(chat_id=admin_id)
-def magazine_periodicity(message, keyl, choice, command, key1=None):
-    circ = message.text
-    markup = create_keyboards(periodicity_list)
-    bot.reply_to(message, "Thank you! Also enter, please, its periodicity!\n", reply_markup=markup)
-    bot.register_next_step_handler(message, extra_insert, keyl, choice, circ, command, key1)
-
-
-@bot.message_handler(chat_id=admin_id)
-def translation_status(message, keyl, choice, leg, command, key1):
-    markup = create_keyboards(status_list)
-    bot.reply_to(message, "Also enter, please, what's your translation status?\n", reply_markup=markup)
-    bot.register_next_step_handler(message, extra_insert, keyl, choice, leg, command, key1)
-
-@bot.message_handler(chat_id=admin_id)
-def translation_legality(message, keyl, choice, command, key1=None):
-    bot.reply_to(message, "Is your translation official or non-official?")
-    bot.register_next_step_handler(message, translate_select, keyl, choice, command, key1)
-
-
-def translate_select(message, keyl, choice, command, key1=None):
-    leg = message.text
-    if comics_db.search_translation(keyl, leg):
-        if command == 1:
-            answer_dict[choice] = ([x[0] for x in (comics_db.search_translation(keyl, leg))])
-        else:
-            comics_db.update_trans(keyl, key1, leg)
-    else: 
-        translation_status(message, keyl, choice, leg, command, key1)
-        if command == 1:
-            bot.register_next_step_handler(message, select_something, keyl, leg, choice)
-        else:
-            bot.register_next_step_handler(message, update_something, keyl, leg, choice, key1)
-
-
-def select_something(message, keyl, choice, leg=None):
-    if choice == 'author':
-        answer_dict[choice] =  ([x[0] for x in (comics_db.search_author(keyl))])
-    elif choice == 'artist':
-        answer_dict[choice] = ([x[0] for x in (comics_db.search_artist(keyl))])
-    elif choice == 'translation':
-        answer_dict[choice] = ([x[0] for x in (comics_db.search_translation(keyl, leg))])
-    elif choice == 'magazine':
-        answer_dict[choice] = ([x[0] for x in (comics_db.search_magazine(keyl))])
-
-def update_something(message, keyl, leg, choice, key1):
-    if choice == 'author':
-        comics_db.update_author(keyl, key1)
-    elif choice == 'artist':
-        comics_db.update_artist(keyl, key1)
-    elif choice == 'translation':
-        comics_db.update_trans(keyl, key1, leg)
-    elif choice == 'magazine':
-        comics_db.update_magazine(keyl, key1)
-    print('Updated')
-
-
-def extra_insert(message, keyl, choice, extra, command, key1=None):
-    if choice == 'author':
-        comics_db.insert_author(message.text.lower(), keyl)
-        bot.reply_to(message, "Author was insert")
-    elif choice == 'artist':
-        comics_db.insert_artist(message.text.lower(), keyl)
-        bot.reply_to(message, "Artist was insert")
-    elif choice == 'translation':
-        st = message.text
-        markup = create_keyboards(btn_list)
-        bot.reply_to(message, 'Translation was inserted', reply_markup=markup)
-        se = list()
-        se.append(st)
-        comics_db.insert_translation(keyl, extra, comics_db.select_status(st, se))
-    elif choice == 'magazine':
-        period = message.text
-        markup = create_keyboards(btn_list)
-        bot.reply_to(message, 'Magazine was inserted', reply_markup=markup)
-        se = list()
-        se.append(period)
-        comics_db.insert_magazine(keyl, extra, comics_db.select_period(period, se))
-    if command == 1:
-        bot.register_next_step_handler(message, select_something, keyl, choice, extra)
     else:
-        bot.register_next_step_handler(message, update_something, keyl, choice, key1, extra)
-
-
-@bot.message_handler(chat_id=admin_id)
-def extra_not_in_base(message, quation, keyl, choice, command, key1):
-    extra=None
-    bot.reply_to(message, quation)
-    bot.register_next_step_handler(message, extra_insert, keyl, choice, extra, command, key1)
+        next_choose(message, command, key1)
 
 @bot.message_handler(chat_id=admin_id)
 def insert_comics(message, choice, command, key1):
@@ -401,14 +303,14 @@ def insert_comics(message, choice, command, key1):
     elif choice == 'magazine':
         if comics_db.search_magazine(keyl):
             if command == 1:
-                answer_dict[choice] = ([x[0] for x in (comics_db.select_period(key, keyl))])
+                answer_dict[choice] = ([x[0] for x in (comics_db.search_magazine(keyl))])
             else:
-                comics_db.update_period(key, keyl, key1)
+                comics_db.update_magazine(key, key1)
         else:
             magazine_extra(message, keyl, choice, command, key1)
     elif choice == 'chapters':
         if command == 1:
-            answer_dict[choice] = ([x[0] for x in (comics_db.select_num(int(key)))])
+            answer_dict[choice] = comics_db.select_num(int(key))
         else:
             comics_db.update_num(key, key1)
     elif choice == 'status':
@@ -435,18 +337,105 @@ def insert_comics(message, choice, command, key1):
         translation_legality(message, keyl, choice, command, key1)
     else:
         raise TypeError
+    #bot.reply_to(message, "Chose what you want to add.")
     bot.register_next_step_handler(message, bot_asks, command, key1)
     print(answer_dict)
 
+#author and artist
+@bot.message_handler(chat_id=admin_id)
+def extra_not_in_base(message, quation, keyl, choice, command, key1=None, extra=None):
+    bot.reply_to(message, quation)
+    bot.register_next_step_handler(message, extra_insert, keyl, choice, command, key1, extra)
+
+# magazine
+@bot.message_handler(chat_id=admin_id)
+def magazine_extra(message, keyl, choice, command, key1=None):
+    bot.reply_to(message, "It seems that your magazine is not in our database. Please help us by entering its circulation!\n")
+    bot.register_next_step_handler(message, magazine_periodicity, keyl, choice, command, key1)
+
+@bot.message_handler(chat_id=admin_id)
+def magazine_periodicity(message, keyl, choice, command, key1):
+    circ = message.text
+    markup = create_keyboards(periodicity_list)
+    bot.reply_to(message, "Thank you! Also enter, please, its periodicity!\n", reply_markup=markup)
+    bot.register_next_step_handler(message, extra_insert, keyl, choice, command, key1, circ)
+
+# translation
+@bot.message_handler(chat_id=admin_id)
+def translation_legality(message, keyl, choice, command, key1=None):
+    bot.reply_to(message, "Is your translation official or non-official?")
+    bot.register_next_step_handler(message, translate_select, keyl, choice, command, key1)
+
+@bot.message_handler(chat_id=admin_id)
+def translation_status(message, keyl, choice, command, key1, leg):
+    markup = create_keyboards(status_list)
+    bot.reply_to(message, "Also enter, please, what's your translation status?\n", reply_markup=markup)
+    bot.register_next_step_handler(message, extra_insert, keyl, choice, command, key1, leg)
+
+def translate_select(message, keyl, choice, command, key1):
+    leg = message.text
+    if comics_db.search_translation(keyl, leg):
+        if command == 1:
+            answer_dict[choice] = ([x[0] for x in (comics_db.search_translation(keyl, leg))])
+        else:
+            comics_db.update_trans(keyl, key1, leg)
+    else: 
+        translation_status(message, keyl, choice, command, key1, leg)
+
+@bot.message_handler(chat_id=admin_id)
+def extra_insert(message, keyl, choice, command, key1, extra):
+    if choice == 'author':
+        comics_db.insert_author(message.text.lower(), keyl)
+        bot.reply_to(message, "Author was insert")
+    elif choice == 'artist':
+        comics_db.insert_artist(message.text.lower(), keyl)
+        bot.reply_to(message, "Artist was insert")
+    elif choice == 'translation':
+        st = message.text
+        markup = create_keyboards(btn_list)
+        bot.reply_to(message, 'Translation was inserted', reply_markup=markup)
+        se = list()
+        se.append(st)
+        comics_db.insert_translation(keyl, extra, comics_db.select_status(st, se))
+    elif choice == 'magazine':
+        period = message.text
+        markup = create_keyboards(btn_list)
+        bot.reply_to(message, 'Magazine was inserted', reply_markup=markup)
+        se = list()
+        se.append(period)
+        comics_db.insert_magazine(keyl, extra, comics_db.select_period(period, se))
+    if command == 1:
+        select_something(message, keyl, choice, extra)
+    else:
+        update_something(message, keyl, choice, key1, extra)
+
+
+
+def select_something(message, keyl, choice, leg):
+    if choice == 'author':
+        answer_dict[choice] =  ([x[0] for x in (comics_db.search_author(keyl))])
+    elif choice == 'artist':
+        answer_dict[choice] = ([x[0] for x in (comics_db.search_artist(keyl))])
+    elif choice == 'translation':
+        answer_dict[choice] = ([x[0] for x in (comics_db.search_translation(keyl, leg))])
+    elif choice == 'magazine':
+        answer_dict[choice] = ([x[0] for x in (comics_db.search_magazine(keyl))])
+
+def update_something(message, keyl, choice, key1, leg):
+    if choice == 'author':
+        comics_db.update_author(keyl, key1)
+    elif choice == 'artist':
+        comics_db.update_artist(keyl, key1)
+    elif choice == 'translation':
+        comics_db.update_trans(keyl, key1, leg)
+    elif choice == 'magazine':
+        comics_db.update_magazine(keyl, key1)
+    print('Updated')
+
 #insert part ends
-
-# update part starts
-
-
-
-
-#update part ends
-
 
 bot.add_custom_filter(custom_filters.ChatFilter())
 bot.infinity_polling()
+
+
+
